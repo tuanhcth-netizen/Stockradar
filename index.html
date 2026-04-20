@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StockRadar — Cảnh báo chứng khoán thông minh</title>
+<style>
+  :root {
+    --green: #00c853;
+    --green-dark: #009624;
+    --red: #ff1744;
+    --bg: #0a0e1a;
+    --bg2: #111827;
+    --bg3: #1a2235;
+    --border: #1e2d45;
+    --text: #e2e8f0;
+    --text-dim: #94a3b8;
+    --gold: #fbbf24;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', sans-serif; line-height: 1.6; }
+  a { color: var(--green); text-decoration: none; }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; width: 100%; z-index: 100;
+    background: rgba(10,14,26,0.95); backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 40px;
+  }
+  .logo { font-size: 1.4rem; font-weight: 700; color: var(--green); letter-spacing: 1px; }
+  .logo span { color: var(--text); }
+  .nav-btn {
+    background: var(--green); color: #000; font-weight: 700;
+    padding: 8px 20px; border-radius: 8px; font-size: 0.9rem;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover { background: var(--green-dark); color: #fff; }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh; display: flex; align-items: center; justify-content: center;
+    text-align: center; padding: 100px 20px 60px;
+    background: radial-gradient(ellipse at 50% 0%, #0d2137 0%, var(--bg) 70%);
+  }
+  .hero-badge {
+    display: inline-block; background: rgba(0,200,83,0.12);
+    border: 1px solid rgba(0,200,83,0.3); color: var(--green);
+    padding: 6px 16px; border-radius: 20px; font-size: 0.85rem;
+    margin-bottom: 24px; letter-spacing: 1px;
+  }
+  .hero h1 {
+    font-size: clamp(2.2rem, 6vw, 4rem); font-weight: 800;
+    line-height: 1.15; margin-bottom: 20px;
+  }
+  .hero h1 span { color: var(--green); }
+  .hero p {
+    font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--text-dim);
+    max-width: 620px; margin: 0 auto 40px;
+  }
+  .hero-btns { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .btn-primary {
+    background: var(--green); color: #000; font-weight: 700;
+    padding: 14px 32px; border-radius: 10px; font-size: 1rem;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    box-shadow: 0 0 30px rgba(0,200,83,0.3);
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 40px rgba(0,200,83,0.5); color: #000; }
+  .btn-secondary {
+    background: transparent; color: var(--text); font-weight: 600;
+    padding: 14px 32px; border-radius: 10px; font-size: 1rem;
+    border: 1px solid var(--border);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+
+  /* TICKER */
+  .ticker-bar {
+    background: var(--bg2); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 10px 0; overflow: hidden; white-space: nowrap;
+  }
+  .ticker-inner { display: inline-flex; gap: 48px; animation: ticker 30s linear infinite; }
+  .ticker-item { font-size: 0.85rem; }
+  .ticker-item .sym { font-weight: 700; margin-right: 6px; }
+  .up { color: var(--green); }
+  .dn { color: var(--red); }
+  @keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* SECTION */
+  section { padding: 80px 20px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+  .section-label { color: var(--green); font-size: 0.8rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 12px; }
+  .section-title { font-size: clamp(1.6rem, 4vw, 2.4rem); font-weight: 800; margin-bottom: 16px; }
+  .section-sub { color: var(--text-dim); font-size: 1.05rem; max-width: 560px; }
+
+  /* FEATURES */
+  .features-bg { background: var(--bg2); }
+  .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 48px; }
+  .feature-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 16px; padding: 28px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .feature-card:hover { border-color: var(--green); transform: translateY(-4px); }
+  .feature-icon { font-size: 2rem; margin-bottom: 16px; }
+  .feature-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 10px; }
+  .feature-card p { color: var(--text-dim); font-size: 0.95rem; }
+
+  /* SCREENSHOTS */
+  .screenshots-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px; margin-top: 48px;
+  }
+  .screenshot-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 16px; overflow: hidden;
+  }
+  .screenshot-card img { width: 100%; display: block; }
+  .screenshot-label {
+    padding: 12px 16px; font-size: 0.85rem; color: var(--text-dim); text-align: center;
+  }
+  .mock-screen {
+    background: #0d1117; padding: 16px; font-family: monospace; font-size: 0.8rem;
+    line-height: 1.8; min-height: 200px;
+  }
+  .mock-screen .g { color: var(--green); }
+  .mock-screen .r { color: var(--red); }
+  .mock-screen .w { color: #fff; font-weight: 700; }
+  .mock-screen .d { color: var(--text-dim); }
+  .mock-screen .gold { color: var(--gold); }
+
+  /* HOW IT WORKS */
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 32px; margin-top: 48px; }
+  .step { text-align: center; }
+  .step-num {
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(0,200,83,0.12); border: 2px solid var(--green);
+    color: var(--green); font-size: 1.4rem; font-weight: 800;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px;
+  }
+  .step h3 { font-size: 1rem; font-weight: 700; margin-bottom: 8px; }
+  .step p { color: var(--text-dim); font-size: 0.9rem; }
+
+  /* PRICING */
+  .pricing-bg { background: var(--bg2); }
+  .pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; margin-top: 48px; }
+  .pricing-card {
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 20px; padding: 36px 28px; text-align: center; position: relative;
+  }
+  .pricing-card.featured {
+    border-color: var(--green);
+    box-shadow: 0 0 40px rgba(0,200,83,0.15);
+  }
+  .badge-featured {
+    position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+    background: var(--green); color: #000; font-size: 0.75rem; font-weight: 700;
+    padding: 4px 16px; border-radius: 20px; letter-spacing: 1px;
+  }
+  .pricing-name { font-size: 1rem; color: var(--text-dim); margin-bottom: 12px; font-weight: 600; }
+  .pricing-price { font-size: 2.4rem; font-weight: 800; color: var(--green); margin-bottom: 4px; }
+  .pricing-price span { font-size: 1rem; color: var(--text-dim); }
+  .pricing-duration { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 28px; }
+  .pricing-features { list-style: none; text-align: left; margin-bottom: 32px; }
+  .pricing-features li { padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; display: flex; align-items: center; gap: 10px; }
+  .pricing-features li:last-child { border-bottom: none; }
+  .check { color: var(--green); font-weight: 700; }
+  .cross { color: var(--text-dim); }
+  .btn-plan {
+    display: block; width: 100%; padding: 12px;
+    border-radius: 10px; font-weight: 700; font-size: 0.95rem;
+    text-align: center; transition: 0.2s;
+  }
+  .btn-plan-primary { background: var(--green); color: #000; }
+  .btn-plan-primary:hover { background: var(--green-dark); color: #fff; }
+  .btn-plan-outline { background: transparent; color: var(--text); border: 1px solid var(--border); }
+  .btn-plan-outline:hover { border-color: var(--green); color: var(--green); }
+
+  /* STATS */
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 24px; margin-top: 48px; }
+  .stat { text-align: center; }
+  .stat-num { font-size: 2.5rem; font-weight: 800; color: var(--green); }
+  .stat-label { color: var(--text-dim); font-size: 0.9rem; margin-top: 4px; }
+
+  /* CTA */
+  .cta-section {
+    text-align: center; padding: 80px 20px;
+    background: radial-gradient(ellipse at 50% 100%, #0d2137 0%, var(--bg) 70%);
+  }
+  .cta-section h2 { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: 800; margin-bottom: 16px; }
+  .cta-section p { color: var(--text-dim); font-size: 1.05rem; margin-bottom: 36px; }
+
+  /* FOOTER */
+  footer {
+    background: var(--bg2); border-top: 1px solid var(--border);
+    padding: 32px 20px; text-align: center; color: var(--text-dim); font-size: 0.85rem;
+  }
+  .footer-contact { margin-bottom: 12px; }
+  .footer-contact a { color: var(--green); }
+
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    nav { padding: 12px 20px; }
+    .hero-btns { flex-direction: column; align-items: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Stock<span>Radar</span></div>
+  <a href="https://t.me/StockRadarVN24_bot" class="nav-btn" target="_blank">🤖 Dùng thử miễn phí</a>
+</nav>
+
+<!-- TICKER -->
+<div style="margin-top:56px" class="ticker-bar">
+  <div class="ticker-inner">
+    <span class="ticker-item"><span class="sym">VCB</span><span class="up">+1.2% ▲</span></span>
+    <span class="ticker-item"><span class="sym">HPG</span><span class="up">+2.4% ▲</span></span>
+    <span class="ticker-item"><span class="sym">VHM</span><span class="up">+6.9% ▲</span></span>
+    <span class="ticker-item"><span class="sym">MBB</span><span class="dn">-0.5% ▼</span></span>
+    <span class="ticker-item"><span class="sym">PNJ</span><span class="up">+3.6% ▲</span></span>
+    <span class="ticker-item"><span class="sym">FPT</span><span class="up">+1.8% ▲</span></span>
+    <span class="ticker-item"><span class="sym">TCB</span><span class="dn">-1.1% ▼</span></span>
+    <span class="ticker-item"><span class="sym">BCM</span><span class="up">+2.9% ▲</span></span>
+    <span class="ticker-item"><span class="sym">VRE</span><span class="up">+3.0% ▲</span></span>
+    <span class="ticker-item"><span class="sym">SSI</span><span class="up">+0.8% ▲</span></span>
+    <!-- repeat -->
+    <span class="ticker-item"><span class="sym">VCB</span><span class="up">+1.2% ▲</span></span>
+    <span class="ticker-item"><span class="sym">HPG</span><span class="up">+2.4% ▲</span></span>
+    <span class="ticker-item"><span class="sym">VHM</span><span class="up">+6.9% ▲</span></span>
+    <span class="ticker-item"><span class="sym">MBB</span><span class="dn">-0.5% ▼</span></span>
+    <span class="ticker-item"><span class="sym">PNJ</span><span class="up">+3.6% ▲</span></span>
+    <span class="ticker-item"><span class="sym">FPT</span><span class="up">+1.8% ▲</span></span>
+    <span class="ticker-item"><span class="sym">TCB</span><span class="dn">-1.1% ▼</span></span>
+    <span class="ticker-item"><span class="sym">BCM</span><span class="up">+2.9% ▲</span></span>
+    <span class="ticker-item"><span class="sym">VRE</span><span class="up">+3.0% ▲</span></span>
+    <span class="ticker-item"><span class="sym">SSI</span><span class="up">+0.8% ▲</span></span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div>
+    <div class="hero-badge">🚀 Bot Telegram chứng khoán thông minh</div>
+    <h1>Không bỏ lỡ bất kỳ<br><span>cơ hội nào</span> trên thị trường</h1>
+    <p>StockRadar tự động quét toàn thị trường, phát hiện cổ phiếu bất thường và gửi cảnh báo thời gian thực về Telegram của bạn.</p>
+    <div class="hero-btns">
+      <a href="https://t.me/StockRadarVN24_bot" class="btn-primary" target="_blank">
+        ✈️ Dùng thử 3 ngày miễn phí
+      </a>
+      <a href="#features" class="btn-secondary">Xem tính năng ↓</a>
+    </div>
+  </div>
+</section>
+
+<!-- STATS -->
+<section style="padding:48px 20px; background: var(--bg2);">
+  <div class="container">
+    <div class="stats">
+      <div class="stat"><div class="stat-num">100+</div><div class="stat-label">Mã VN100 được quét</div></div>
+      <div class="stat"><div class="stat-num">15'</div><div class="stat-label">Tần suất cảnh báo</div></div>
+      <div class="stat"><div class="stat-num">8</div><div class="stat-label">Chỉ báo kỹ thuật</div></div>
+      <div class="stat"><div class="stat-num">24/7</div><div class="stat-label">Bot hoạt động liên tục</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section class="features-bg" id="features">
+  <div class="container">
+    <div class="section-label">Tính năng</div>
+    <div class="section-title">Mọi thứ bạn cần để<br>không bỏ lỡ cơ hội</div>
+    <p class="section-sub">Từ cảnh báo bất thường đến phân tích kỹ thuật chuyên sâu — tất cả trong một bot Telegram.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🔔</div>
+        <h3>Cảnh báo giao dịch bất thường</h3>
+        <p>Phát hiện khối lượng đột biến bất thường so với kỳ vọng trong phiên. Cảnh báo ngay lập tức qua Telegram.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <h3>Screener — Lọc cổ phiếu</h3>
+        <p>Quét 100 mã VN100, lọc cổ phiếu tăng mạnh ≥1.5% kèm khối lượng ≥1.5x trung bình. Tìm cơ hội trong vài phút.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📊</div>
+        <h3>Phân tích kỹ thuật 8 chỉ báo</h3>
+        <p>RSI, MACD, Bollinger Bands, MA, Stochastic, Volume, Hỗ trợ/Kháng cự, ATR — tổng hợp tín hiệu MUA/BÁN tức thì.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📈</div>
+        <h3>Báo cáo cuối phiên</h3>
+        <p>Tổng hợp tự động lúc 15:15 — danh sách Breakout 20 phiên, mô hình nến đẹp, nhận định AI thị trường.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>Phân tích AI theo yêu cầu</h3>
+        <p>Gõ <code>/analyze VCB</code> — nhận phân tích chuyên sâu kèm biểu đồ giá và nhận định của AI trong vài giây.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <h3>Dễ dùng — Không cần cài gì</h3>
+        <p>Chỉ cần Telegram. Nhắn tin lệnh đơn giản, bot trả lời ngay. Không cần phần mềm, không cần đăng nhập web.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SCREENSHOTS -->
+<section>
+  <div class="container">
+    <div class="section-label">Demo thực tế</div>
+    <div class="section-title">Xem bot hoạt động<br>như thế nào</div>
+    <div class="screenshots-grid">
+
+      <div class="screenshot-card">
+        <div class="mock-screen">
+          <div class="gold">🔔 CẢNH BÁO GIAO DỊCH BẤT THƯỜNG</div>
+          <div class="d">13:29 20/04/2026 | 2 mã</div>
+          <br>
+          <div class="g">📈 VIC +0.1% KL: 1.62x</div>
+          <div class="g">📈 VHM +4.9% KL: 1.38x</div>
+          <br>
+          <div class="w">VIC [HOSE]</div>
+          <div>💰 Giá: <span class="g">188,100</span> (+0.1%)</div>
+          <div>📊 KL tích lũy: 3,987,200 cp</div>
+          <div>⚡ Gấp <span class="g">1.62x</span> kỳ vọng</div>
+        </div>
+        <div class="screenshot-label">Cảnh báo KL bất thường trong phiên</div>
+      </div>
+
+      <div class="screenshot-card">
+        <div class="mock-screen">
+          <div class="gold">🔍 SCREENER — Tăng mạnh + KL lớn</div>
+          <div class="d">Tiêu chí: tăng ≥1.5% | KL ≥1.5x TB</div>
+          <br>
+          <div>1. <span class="w">PNJ</span> 115,000 <span class="g">+3.6%</span> KL: <span class="g">1.7x</span></div>
+          <div>2. <span class="w">BCM</span> 57,300 <span class="g">+2.87%</span> KL: <span class="g">2.0x</span></div>
+          <div>3. <span class="w">VHC</span> 62,700 <span class="g">+2.28%</span> KL: <span class="g">2.4x</span></div>
+          <div>4. <span class="w">POM</span> 4,200 <span class="g">+2.44%</span> KL: <span class="g">1.5x</span></div>
+          <div>5. <span class="w">ANV</span> 25,400 <span class="g">+1.6%</span> KL: <span class="g">1.7x</span></div>
+          <br>
+          <div class="d">Đã quét 100 mã | Top 5 kết quả</div>
+        </div>
+        <div class="screenshot-label">Screener lọc cổ phiếu tăng mạnh</div>
+      </div>
+
+      <div class="screenshot-card">
+        <div class="mock-screen">
+          <div class="gold">📊 PHÂN TÍCH KỸ THUẬT — VRE</div>
+          <div>💰 Giá: <span class="g">29,450</span> (+2.97%)</div>
+          <br>
+          <div class="r">🔴 RSI(14) [69.5] — Tiệm cận quá mua</div>
+          <div class="g">🟢 MACD [+345.60] — Đà tăng mạnh</div>
+          <div class="d">⚪ Bollinger [%B=88%] — Trong dải BB</div>
+          <div class="g">🟢 MA — Giá trên cả 3 MA, xu hướng tăng</div>
+          <div class="d">⚪ Volume [1.0x TB] — Bình thường</div>
+          <br>
+          <div class="gold">🎯 Tổng hợp: 🔵 MUA YẾU (điểm: +1)</div>
+        </div>
+        <div class="screenshot-label">Phân tích kỹ thuật 8 chỉ báo</div>
+      </div>
+
+      <div class="screenshot-card">
+        <div class="mock-screen">
+          <div class="gold">📊 BÁO CÁO CUỐI PHIÊN</div>
+          <div class="d">15:15 | Đã quét 100 mã</div>
+          <br>
+          <div class="g">🚀 BREAKOUT — Vượt đỉnh 20 phiên:</div>
+          <div>• <span class="w">HDB</span> 26,900 <span class="g">+2.7%</span> KL: 1.4x</div>
+          <div>• <span class="w">VHM</span> 145,100 <span class="g">+6.9%</span> KL: 1.3x</div>
+          <div>• <span class="w">VIC</span> 191,000 <span class="g">+1.6%</span> KL: 1.4x</div>
+          <br>
+          <div class="gold">🕯 MÔ HÌNH NẾN TĂNG ĐẸP:</div>
+          <div>• <span class="w">VRE</span> Bullish Engulfing <span class="g">+3.0%</span></div>
+          <div>• <span class="w">REE</span> Bullish Engulfing <span class="g">+1.4%</span></div>
+        </div>
+        <div class="screenshot-label">Báo cáo tổng hợp cuối phiên 15:15</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section style="background: var(--bg2);">
+  <div class="container">
+    <div class="section-label">Cách sử dụng</div>
+    <div class="section-title">Bắt đầu trong 60 giây</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <h3>Mở Telegram</h3>
+        <p>Tìm kiếm <strong>@StockRadarVN24_bot</strong> hoặc nhấn nút bên dưới</p>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <h3>Gõ /start</h3>
+        <p>Bot tự động kích hoạt 3 ngày dùng thử miễn phí gói Nâng cao</p>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <h3>Nhận cảnh báo</h3>
+        <p>Bot tự động gửi cảnh báo trong giờ giao dịch, không cần làm gì thêm</p>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <h3>Dùng lệnh</h3>
+        <p>/screener, /ta VCB, /analyze VCB — phân tích bất kỳ mã nào theo yêu cầu</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section class="pricing-bg" id="pricing">
+  <div class="container">
+    <div class="section-label">Bảng giá</div>
+    <div class="section-title">Đơn giản, minh bạch</div>
+    <div class="pricing-grid">
+
+      <div class="pricing-card">
+        <div class="pricing-name">🎁 Dùng thử</div>
+        <div class="pricing-price">0<span> VNĐ</span></div>
+        <div class="pricing-duration">3 ngày đầu miễn phí</div>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> Cảnh báo KL bất thường</li>
+          <li><span class="check">✓</span> Báo cáo cuối phiên</li>
+          <li><span class="check">✓</span> Screener VN100</li>
+          <li><span class="check">✓</span> Phân tích kỹ thuật /ta</li>
+          <li><span class="check">✓</span> Phân tích AI /analyze</li>
+        </ul>
+        <a href="https://t.me/StockRadarVN24_bot" class="btn-plan btn-plan-outline" target="_blank">Bắt đầu miễn phí</a>
+      </div>
+
+      <div class="pricing-card featured">
+        <div class="badge-featured">PHỔ BIẾN NHẤT</div>
+        <div class="pricing-name">⚡ Gói Cơ bản</div>
+        <div class="pricing-price">100k<span> VNĐ</span></div>
+        <div class="pricing-duration">/tháng</div>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> Cảnh báo KL bất thường</li>
+          <li><span class="check">✓</span> Báo cáo cuối phiên</li>
+          <li><span class="check">✓</span> Screener VN100</li>
+          <li><span class="check">✓</span> Phân tích kỹ thuật /ta</li>
+          <li><span class="cross">✗</span> Phân tích AI /analyze</li>
+        </ul>
+        <a href="https://t.me/StockRadarVN24_bot" class="btn-plan btn-plan-primary" target="_blank">Đăng ký ngay</a>
+      </div>
+
+      <div class="pricing-card">
+        <div class="pricing-name">🚀 Gói Nâng cao</div>
+        <div class="pricing-price">200k<span> VNĐ</span></div>
+        <div class="pricing-duration">/tháng</div>
+        <ul class="pricing-features">
+          <li><span class="check">✓</span> Cảnh báo KL bất thường</li>
+          <li><span class="check">✓</span> Báo cáo cuối phiên</li>
+          <li><span class="check">✓</span> Screener VN100</li>
+          <li><span class="check">✓</span> Phân tích kỹ thuật /ta</li>
+          <li><span class="check">✓</span> Phân tích AI + biểu đồ</li>
+        </ul>
+        <a href="https://t.me/StockRadarVN24_bot" class="btn-plan btn-plan-outline" target="_blank">Đăng ký ngay</a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <div class="container">
+    <h2>Bắt đầu ngay hôm nay<br><span style="color:var(--green)">miễn phí 3 ngày</span></h2>
+    <p>Không cần thẻ tín dụng. Không cần cài phần mềm. Chỉ cần Telegram.</p>
+    <a href="https://t.me/StockRadarVN24_bot" class="btn-primary" target="_blank" style="font-size:1.1rem; padding:16px 40px;">
+      ✈️ Mở StockRadar Bot ngay
+    </a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-contact">
+    Hỗ trợ: <a href="tel:0943353435">0943 353 435</a> &nbsp;|&nbsp;
+    Telegram: <a href="https://t.me/StockRadarVN24_bot" target="_blank">@StockRadarVN24_bot</a>
+  </div>
+  <div>© 2026 StockRadar. Thông tin mang tính tham khảo, không phải khuyến nghị đầu tư.</div>
+</footer>
+
+</body>
+</html>
